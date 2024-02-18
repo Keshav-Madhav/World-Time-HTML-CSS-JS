@@ -6,6 +6,8 @@ var fetchedCountry = '';
 var isLoading = false;
 var countryTimeMap = {}; // Map to store country and time data
 
+var hue = 0;
+
 // Add event listeners to each country path
 paths.forEach(countryPath => {
   countryPath.addEventListener('mouseenter', function() {
@@ -19,7 +21,8 @@ paths.forEach(countryPath => {
       let fetchedLocalTime = new Date(countryTimeMap[countryName].localTime);
       let timeDifference = new Date().getTime() - fetchedLocalTime.getTime(); // Calculate time difference
       let adjustedTime = new Date(countryTime.getTime() + timeDifference);
-      timeP.textContent = adjustedTime.toLocaleString(); // Display adjusted time
+      let timezoneAbbreviation = countryTimeMap[countryName].timezoneAbbreviation;
+      timeP.textContent = adjustedTime.toLocaleString() + ' ' + timezoneAbbreviation; // Display adjusted time with timezone abbreviation
       timeP.style.display = 'block';
     } else {
       timeP.style.display = 'none';
@@ -39,13 +42,24 @@ paths.forEach(countryPath => {
     timeP.textContent = 'Loading...';
     timeP.style.display = 'block';
 
+    if( hue > 360){
+      hue = 0;
+    }
+    countryPath.style.fill = `hsl(${hue}, 50%, 50%)`; // Change the color of the country path
+    hue += 20; // Change the hue value
+
+    const countryGroup = countryPath.parentNode;
+    countryGroup.style.stroke = '#000000';
+    countryGroup.style.strokeWidth = '0.12';
+
     // Check if time data for the country is available in the map
     if (countryTimeMap.hasOwnProperty(countryName)) {
       let countryTime = new Date(countryTimeMap[countryName].time);
       let fetchedLocalTime = new Date(countryTimeMap[countryName].localTime);
       let timeDifference = new Date().getTime() - fetchedLocalTime.getTime(); // Calculate time difference
       let adjustedTime = new Date(countryTime.getTime() + timeDifference);
-      timeP.textContent = adjustedTime.toLocaleString(); // Display adjusted time
+      let timezoneAbbreviation = countryTimeMap[countryName].timezoneAbbreviation;
+      timeP.textContent = adjustedTime.toLocaleString() + ' ' + timezoneAbbreviation; // Display adjusted time with timezone abbreviation
       isLoading = false;
       return;
     }
@@ -54,10 +68,11 @@ paths.forEach(countryPath => {
 
     timeRes.then(time => {
       let localTime = new Date(); // Store local time when data is fetched
-      timeP.textContent = time;
+      let timezoneAbbreviation = time.timezone_abbreviation;
+      timeP.textContent = time.datetime + ' ' + timezoneAbbreviation;
       isLoading = false;
-      // Store the fetched time and local time in the map
-      countryTimeMap[countryName] = { time: time, localTime: localTime };
+      // Store the fetched time, local time, and timezone abbreviation in the map
+      countryTimeMap[countryName] = { time: time.datetime, localTime: localTime, timezoneAbbreviation: timezoneAbbreviation };
     }).catch(error => {
       timeP.textContent = 'Failed to load data';
       isLoading = false;
@@ -83,5 +98,5 @@ async function getData(place) {
   const response = await fetch(url);
   const data = await response.json();
 
-  return data.datetime;
+  return data;
 }
