@@ -50,7 +50,7 @@ paths.forEach(countryPath => {
 
     const countryGroup = countryPath.parentNode;
     countryGroup.style.stroke = '#000000';
-    countryGroup.style.strokeWidth = '0.12';
+    countryGroup.style.strokeWidth = '0.01';
 
     // Check if time data for the country is available in the map
     if (countryTimeMap.hasOwnProperty(countryName)) {
@@ -100,3 +100,23 @@ async function getData(place) {
 
   return data;
 }
+
+  let currentScale = 1.0;
+  const minScale = 1;
+  const maxScale = 10.0;
+  const scaleStep = 0.1;
+
+  // Function to zoom the SVG
+  function zoomSvg(delta) {
+    currentScale = Math.min(maxScale, Math.max(minScale, currentScale + delta));
+    document.getElementById('allSvg').style.transform = `scale(${currentScale})`;
+  }
+
+  // Event listener for keydown event
+  document.addEventListener('keydown', function(event) {
+    if (event.key === '+' || event.key === '=') {
+      zoomSvg(scaleStep);
+    } else if (event.key === '-' || event.key === '_') {
+      zoomSvg(-scaleStep);
+    }
+  });
